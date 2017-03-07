@@ -33,7 +33,11 @@ for lc in lcs:
         flux = flux + newflux
         time = time + newtime
 # Plot!
-plt.plot(time, flux)
-plt.xlabel("time")
-plt.ylabel("flux")
+plt.scatter(time, flux, alpha = 0.1, s = 2)
+plt.title(str(ID))
+plt.xlabel("Time (BJD)")
+plt.ylabel("Flux")
+plt.xlim([0,31])
+plt.ylim([0.975,1.005])
+
 plt.show()
