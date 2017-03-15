@@ -32,12 +32,22 @@ for lc in lcs:
 # Combines current dataset with previous time and flux arrays
         flux = flux + newflux
         time = time + newtime
-# Plot!
-plt.scatter(time, flux, alpha = 0.1, s = 2)
+# Calculates centroid of transit
+xcentroid = np.nanmean(time)
+# Plots time vs flux as scatter plot
+plt.scatter(time, flux, alpha = 0.1, s = 0.8)
+# Plots centroid of transit as vertical line, with two other lines 1/6 period ahead and behind
+plt.axvline(x = xcentroid, alpha = 0.5)
+plt.axvline(x = xcentroid + (koi.koi_period/6), alpha = 0.4)
+plt.axvline(x = xcentroid - (koi.koi_period/6), alpha = 0.4)
+# Names plot after the KOI ID
 plt.title(str(ID))
 plt.xlabel("Time (BJD)")
 plt.ylabel("Flux")
-plt.xlim([0,31])
-plt.ylim([0.975,1.005])
+# fits plot x-range to transit period, y-range is specific to this KOI (will change soon)
+plt.xlim([0, koi.koi_period])
+plt.ylim([0.975, 1.005])
+# Made the plot a little bit wider
+plt.figure(num=1, figsize=(20, 10))
 
 plt.show()
