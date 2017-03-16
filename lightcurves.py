@@ -33,7 +33,7 @@ for lc in lcs:
         flux = flux + newflux
         time = time + newtime
 # Calculates centroid of transit
-xcentroid = np.nanmean(time)
+xcentroid = np.mod(koi.koi_time0bk, koi.koi_period)
 # Plots time vs flux as scatter plot
 plt.scatter(time, flux, alpha = 0.1, s = 0.8)
 # Plots centroid of transit as vertical line, with two other lines 1/6 period ahead and behind
