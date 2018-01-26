@@ -3,11 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 m_jup = 1.898e27 #kg
-d = 8.157e11 #m
+d = 8.157e11 #max distance from sun
+dmin = 7.409e11 #min distance from jupiter to sun
 m_sun = 1.989e30 #kg
 G = 6.674e-11 #m^3 kg ^-1 s ^-2
-v_jup = 1.31e4 #ms^-1
-dt = 10000 #seconds
+v_jup = 12.44e3 #ms^-1
+
+semimajor = 0.5*(d+dmin) #length of semimajor axis in m
+T = 2*np.pi*np.sqrt((semimajor**3)/(G*m_sun)) #calculated period of orbit 
+
+tmax = T #seconds
+count = 1000000 #timesteps
+dt = tmax/count
 
 #initial position of jupiter
 x = [d]
@@ -16,22 +23,53 @@ y = [0.0]
 u = [0.0] #velocity in the y-direction
 v = [v_jup] #velocity in the x-direction
 
-def integrate(x, y, u, v, G, M, dt):
-	for i in range(0, 100000):
-		r = np.sqrt(x[i]**2 + y[i]**2)
+def integrate(x, y, u, v, G, M, dt, count):
+	for i in range(0, count):
+		if (i == 0):
+			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
 
-		ax = G*M*x[i]/(r**3)
-		ay = G*M*y[i]/(r**3)
+			ax = -G*M*x[i]/(r**3) #acceleration
+			ay = -G*M*y[i]/(r**3)
 
-		u.append( u[i] - dt*ax )
-		v.append( v[i] - dt*ay )
+			u[0] = u[0] + 0.5*ax*dt #update v[0] to represent v_k+0.5
+			v[0] = v[0] + 0.5*ax*dt
 
-		x.append( x[i] + dt*u[i] )
-		y.append( y[i] + dt*v[i] )
+			x.append( x[i] + dt*u[i] ) #update position
+			y.append( y[i] + dt*v[i] )
+
+		elif (i == count):
+			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
+
+			ax = -G*M*x[i]/(r**3) #acceleration
+			ay = -G*M*y[i]/(r**3)
+
+			u.append( u[i-1] + dt*ax ) #update velocity
+			v.append( v[i-1] + dt*ay )
+
+			x.append( x[i] + dt*u[i] ) #update position
+			y.append( y[i] + dt*v[i] )
+
+			u.append( u[i] + 0.5*ax*dt ) #update v[0] to represent v_k for the final velocity
+			v.append( v[i] + 0.5*ax*dt )
+
+
+		else:
+			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
+
+			ax = -G*M*x[i]/(r**3) #acceleration
+			ay = -G*M*y[i]/(r**3)
+
+			u.append( u[i-1] + dt*ax ) #update velocity
+			v.append( v[i-1] + dt*ay )
+
+			x.append( x[i] + dt*u[i] ) #update position
+			y.append( y[i] + dt*v[i] )
+
+
 
 	plt.plot(x, y)
 	plt.xlabel("x (meters)")
 	plt.ylabel("y (meters)")
 	plt.show()
 
-integrate(x, y, u, v, G, m_sun, dt)
+integrate(x, y, u, v, G, m_sun, dt, count)
