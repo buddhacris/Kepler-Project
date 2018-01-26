@@ -23,7 +23,8 @@ y = [0.0]
 u = [0.0] #velocity in the y-direction
 v = [v_jup] #velocity in the x-direction
 
-def integrate(x, y, u, v, G, M, dt, count):
+def integrate(x, y, u, v, G, M, m, dt, count):
+
 	for i in range(0, count):
 		r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
 
@@ -36,10 +37,15 @@ def integrate(x, y, u, v, G, M, dt, count):
 		x.append( x[i] + dt*u[i] ) #update position
 		y.append( y[i] + dt*v[i] )
 
+	energy0 = 0.5*m*v[0]**2 - G*M*m/r
+	energy = 0.5*m*v[-1]**2 - G*M*m/r
+	print(energy0, energy)
+
+
 
 	plt.plot(x, y)
 	plt.xlabel("x (meters)")
 	plt.ylabel("y (meters)")
 	plt.show()
 
-integrate(x, y, u, v, G, m_sun, dt, count)
+integrate(x, y, u, v, G, m_sun, m_jup, dt, count)
