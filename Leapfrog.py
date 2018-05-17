@@ -2,117 +2,102 @@ import astropy
 import numpy as np
 import matplotlib.pyplot as plt
 
-m_jup = 1.898e27 #kg
-d = 8.157e11 #max distance from sun
-dmin = 7.409e11 #min distance from jupiter to sun
-m_sun = 1.989e30 #kg
+global G
+global m_sun
+global m_jup
 G = 6.674e-11 #m^3 kg ^-1 s ^-2
+m_sun = 1.989e30 #kg
+m_jup = 1.898e27 #kg
+dmax = 8.157e11 #max distance from sun
+dmin = 7.409e11 #min distance from jupiter to sun
 v_jup = 12.44e3 #ms^-1
 
-semimajor = 0.5*(d+dmin) #length of semimajor axis in m
+
+semimajor = 0.5*(dmax+dmin) #length of semimajor axis in m
 T = 2*np.pi*np.sqrt((semimajor**3)/(G*m_sun)) #calculated period of orbit 
+
+
+#initial values for x, v
+
+def integrate(dmax, v_jup, tmax, nsteps):
+	dt = tmax/nsteps
+
+	#generate empty arrays for x, y, z
+	x = np.empty([nsteps, 3])
+	v = np.empty([nsteps, 3])
+
+
+	x[0] = [dmax, 0.0, 0.0]
+	v[0] = [0.0, v_jup, 0.0]
+
+	#save initial distance and velocity
+	r0 = np.sqrt(sum(x[0]*x[0]))
+	v0 = np.sqrt(sum(v[0]*v[0]))
+
+	a = np.empty([nsteps, 3])
+	a[0] = -G*m_sun*x[0]/(r0**3)
+
+	#calculate initial energy and angular momentum
+	Energy0 = 0.5*m_jup*v0**2 - G*m_sun*m_jup/r0
+	L0 = np.cross(x[0], m_jup*v[0])
+
+	for i in range(0, nsteps):
+
+		#on first loop, adjusts velocity to half timestep multiples
+		if (i==0):
+
+			v[i] = v[0] + 0.5*dt*a[i-1]
+
+		elif (i==nsteps):
+			v[i] = v[i-1] + 0.5*dt*a[i-1]
+			x[i] = x[i-1] + dt*v[i-1]
+
+			r = np.sqrt(sum(x[i]*x[i]))
+			a[i] = -G*m_sun*x[i]/(r**3)
+
+		#integrates all others
+		else:
+			v[i] = v[i-1] + dt*a[i-1]
+			x[i] = x[i-1] + dt*v[i-1]
+
+			r = np.sqrt(sum(x[i]*x[i]))
+			a[i] = -G*m_sun*x[i]/(r**3)
+
+	#calculates final distance and velocity
+	rf = np.sqrt(sum(x[-1]*x[-1]))
+	vf = np.sqrt(sum(v[-1]*v[-1]))
+
+	Energyf = 0.5*m_jup*vf**2 - G*m_sun*m_jup/rf
+	Lf = np.cross(x[-1], m_jup*v[-1])
+
+	dE = abs((Energyf - Energy0)/Energy0)
+	dL = abs((Lf[2]-L0[2])/L0[2])
+
+	return dE, dL
+
 tmax = 8*T #seconds
-count = 1000000 #timesteps
-dt1 = tmax/count
 
-count2 = count*2 #calculates time steps half the size of the original
-dt2 = tmax/count2
+sizes = [10000, 50000, 100000, 500000, 1000000]
+Energies = np.empty([len(sizes)])
+Momenta = np.empty([len(sizes)])
 
-count3 = count*2 #calculates timesteps double the size of th original
-dt3 = tmax/count3
+for i in range(0, len(sizes)):
+	nsteps = sizes[i]
+	Energies[i], Momenta[i] = integrate(dmax, v_jup, tmax, nsteps)
 
-#initial position of jupiter
-x = [d]
-y = [0.0]
-
-u = [0.0] #velocity in the x-direction
-v = [v_jup] #velocity in the y-direction
-
-def integrate(x, y, u, v, G, M, m, dt, count):
-
-	r0 = np.sqrt(x[0]**2 + y[0]**2)
-	energy0 = 0.5*m*v[0]**2 - G*M*m/r0  #calculates initial energy
-
-	L0 = [m*u[0]*x[0], m*v[0]*y[0]] #calculates initial angular momentum vector
-
-	for i in range(0, count):  #integration loop
-		if (i == 0): #on first loop, adjusts velocity to half timestep multiples
-			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
-
-			ax = -G*M*x[i]/(r**3) #acceleration
-			ay = -G*M*y[i]/(r**3)
-
-			u[0] = u[0] + 0.5*ax*dt #update v[0] to represent v_k+0.5
-			v[0] = v[0] + 0.5*ax*dt
-
-			x.append( x[i] + dt*u[i] ) #update position
-			y.append( y[i] + dt*v[i] )
-
-		elif (i == count): #on the last loop, updates velocity back to an integger timestep
-			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
-
-			ax = -G*M*x[i]/(r**3) #acceleration
-			ay = -G*M*y[i]/(r**3)
-
-			u.append( u[i-1] + dt*ax ) #update velocity
-			v.append( v[i-1] + dt*ay )
-
-			x.append( x[i] + dt*u[i] ) #update position
-			y.append( y[i] + dt*v[i] )
-
-			u.append( u[i] + 0.5*ax*dt ) #update v[0] to represent v_k for the final velocity
-			v.append( v[i] + 0.5*ax*dt )
-
-
-		else: #integrates all others
-			r = np.sqrt(x[i]**2 + y[i]**2) #distance to sun
-
-			ax = -G*M*x[i]/(r**3) #acceleration
-			ay = -G*M*y[i]/(r**3)
-
-			u.append( u[i-1] + dt*ax ) #update velocity
-			v.append( v[i-1] + dt*ay )
-
-			x.append( x[i] + dt*u[i] ) #update position
-			y.append( y[i] + dt*v[i] )
-
-	energy = 0.5*m*v[count-1]**2 - G*M*m/r #calculates final energy
-	Lf = [m*u[count-1]*x[count-1], m*v[count-1]*y[count-1]] #calculates final angular momentum vector
-	dL = [Lf[0]-L0[0], Lf[1]-L0[1]] #calculates the difference in angular momentum vectors
-	L = np.sqrt(dL[0]**2 + dL[1]**2) #takes the magnitude of the previous difference vector
-	
-	"""
-	print("Initial position (m): (", x[0], ",", y[0], "); Final position: (", x[count-1], ",", y[count-1], ")")
-	print("Initial velocity (m): (", u[0], ", ", v[0], "); Final velocity: (", u[count-1], ",", v[count-1], ")")	
-	print("Step size (sec): ", dt, "; number of steps: ", count)
-	print("Initial energy (J): ", energy0, "; Final energy: ", energy)
-
-	plt.plot(0, 0, "r*")
-	plt.plot(x, y)
-	plt.xlabel("x (meters)")
-	plt.ylabel("y (meters)")
-	plt.show()
-	"""
-
-	dE = energy-energy0
-	print("Energy difference: ", dE, "\nAngular momentum difference: ", L)
-	return dE, L
-
-print("Half dt:\n")
-dE1, L1 = integrate(x, y, u, v, G, m_sun, m_jup, dt1, count) #runs for normal dt
-print("Original dt:\n")
-dE2, L2 = integrate(x, y, u, v, G, m_sun, m_jup, dt2, count2)
-print("Double dt:\n")
-dE3, L3 = integrate(x, y, u, v, G, m_sun, m_jup, dt3, count3)
-
-plt.plot([dt1, dt2, dt3], [dE1, dE2, dE3])
+dts = tmax/sizes
+plt.scatter(dts, Energies)
+#plt.yscale('log')
+#plt.xscale('log')
 plt.title("Leapfrog")
 plt.xlabel("Step size (seconds)")
-plt.ylabel("Energy Difference")
+plt.ylabel("Fractional Energy Difference")
 plt.show()
 
-plt.plot([dt1, dt2, dt3], [L1, L2, L3])
+plt.scatter(dts, Momenta)
+#plt.yscale('log')
+#plt.xscale('log')
 plt.title("Leapfrog")
 plt.xlabel("Step size (seconds)")
-plt.ylabel("Angular Momentum Difference")
+plt.ylabel("Fractional Angular Momentum Difference")
 plt.show()
