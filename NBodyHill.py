@@ -87,6 +87,7 @@ plt.axis('equal')
 plt.xlabel("x (meters)")
 plt.ylabel("y (meters)")
 plt.show()
+
 #plot in Hill
 fig3 = plt.figure()
 plt.plot(xprime[:,0], xprime[:,1])
