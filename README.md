@@ -1,2 +1,2 @@
 ﻿# Kepler-Project
-Plottin' light curves!
+Plottin' light curves and simulating orbits!
