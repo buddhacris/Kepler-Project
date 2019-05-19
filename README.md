@@ -1,2 +1,3 @@
 ﻿# Kepler-Project
-Plottin' light curves and simulating orbits!
+Plottin' light curves simulating orbits, and filtering!
+(we're lookin for funky orbits)
