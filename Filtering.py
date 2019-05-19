@@ -6,6 +6,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+'''
+------------- 
+This file is here to make it easier to use lightcurves and filters in other scripts.
+At the beginning of a program, type from pathtofile.Filtering import * (or just from Filtering import * if in the same folder).
+Now, you can just use the Curve and Filter classes.  However, you do need to use the getkois function to create a list
+of lightcurves.  Check the function below for an example.
+------------- 
+'''
+
+
 def find_nearest(array, value):
     ''' Find nearest value in an array '''
     idx = (np.abs(array-value)).argmin()
@@ -142,6 +152,7 @@ class Filter:
         return dot_times, product
 
 def getkois(file, groupsize, igroup):
+	#lightcurves = getkois('cumulative.csv', 8, 0) to run on the first 8
     print("Getting KOIs...")
     client = kplr.API()
     # Gets false positive KOIs from csv where KOIs are in the second column
