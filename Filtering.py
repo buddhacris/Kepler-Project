@@ -1,14 +1,9 @@
 import kplr
 from astropy.io import fits as pyfits
 import scipy
-from scipy import signal
 import astropy
 import numpy as np
-import statistics as stat
 import matplotlib.pyplot as plt
-import matplotlib.ticker as tck
-import time as ptime
-import operator
 import pandas as pd
 
 def find_nearest(array, value):
